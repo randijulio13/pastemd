@@ -1,0 +1,24 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model Paste {
+  id                  String   @id @db.VarChar(8)
+  content             String   @db.Text
+  passwordHash        String?  @db.VarChar(256)
+  passwordSalt        String?  @db.VarChar(128)
+  expiresAt           DateTime?
+  createdAt           DateTime @default(now())
+  isPasswordProtected Boolean  @default(false)
+
+  @@index([expiresAt])
+}
