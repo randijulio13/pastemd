@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
     Copy,
     Download,
@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { marked } from "marked";
 import hljs from "highlight.js";
+import "@/lib/marked-mermaid";
+import { renderMermaid } from "@/lib/mermaid-config";
 import Link from "next/link";
 
 // Import highlight.js style (github-dark theme is beautiful and matches our palette)
@@ -37,24 +39,22 @@ export default function PasteViewer({
     const [viewMode, setViewMode] = useState<"preview" | "raw">("preview");
     const [copiedText, setCopiedText] = useState(false);
     const [copiedLink, setCopiedLink] = useState(false);
+    const previewRef = useRef<HTMLDivElement>(null);
 
-    // Initialize highlight.js on mount & viewMode change
+    // Render preview & trigger highlight.js + mermaid
     useEffect(() => {
-        if (viewMode === "preview") {
-            hljs.highlightAll();
-        }
-    }, [viewMode, content]);
+        if (viewMode !== "preview" || !previewRef.current) return;
 
-    // Safely parse Markdown to HTML
-    const htmlContent = useMemo(() => {
         try {
-            // Basic configuration for marked to keep it fast
-            return marked.parse(content) as string;
+            previewRef.current.innerHTML = marked.parse(content) as string;
         } catch (e) {
             console.error("Markdown parse error:", e);
-            return `<p>${content}</p>`;
+            previewRef.current.innerHTML = `<p>${content}</p>`;
         }
-    }, [content]);
+
+        hljs.highlightAll();
+        renderMermaid();
+    }, [viewMode, content]);
 
     // Format dates
     const createdDateStr = useMemo(() => {
@@ -255,8 +255,8 @@ export default function PasteViewer({
                     {/* Toggle Rendering Mode */}
                     {viewMode === "preview" ? (
                         <div
+                            ref={previewRef}
                             className="prose-custom max-w-none break-words"
-                            dangerouslySetInnerHTML={{ __html: htmlContent }}
                         />
                     ) : (
                         <div className="relative rounded-2xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-elevated)] p-6 shadow-2xl">

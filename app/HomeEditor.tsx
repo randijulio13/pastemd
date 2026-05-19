@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { marked } from "marked";
 import hljs from "highlight.js";
+import "@/lib/marked-mermaid";
+import { renderMermaid } from "@/lib/mermaid-config";
 import {
     Bold,
     Italic,
@@ -15,6 +17,7 @@ import {
     List,
     ListOrdered,
     Table,
+    Workflow,
     Sparkles,
     Lock,
     Eye,
@@ -45,6 +48,7 @@ export default function HomeEditor() {
 
     const router = useRouter();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const previewRef = useRef<HTMLDivElement>(null);
 
     // Stats
     const charCount = content.length;
@@ -53,24 +57,24 @@ export default function HomeEditor() {
         return trimmed ? trimmed.split(/\s+/).length : 0;
     }, [content]);
 
-    // Syntax highlighting trigger
+    // Render preview & trigger highlight.js + mermaid
     useEffect(() => {
-        if (content) {
-            hljs.highlightAll();
-        }
-    }, [content, mobileTab]);
+        if (!previewRef.current) return;
 
-    // Handle live markdown parsing
-    const parsedHtml = useMemo(() => {
         if (!content.trim()) {
-            return `<p class="text-[var(--color-text-muted)] italic font-sans">Nothing to preview yet. Start typing on the left...</p>`;
+            previewRef.current.innerHTML = `<p class="text-[var(--color-text-muted)] italic font-sans">Nothing to preview yet. Start typing on the left...</p>`;
+            return;
         }
+
         try {
-            return marked.parse(content) as string;
-        } catch (e) {
-            return `<p>${content}</p>`;
+            previewRef.current.innerHTML = marked.parse(content) as string;
+        } catch {
+            previewRef.current.innerHTML = `<p>${content}</p>`;
         }
-    }, [content]);
+
+        hljs.highlightAll();
+        renderMermaid();
+    }, [content, mobileTab]);
 
     // Inject markdown tags helper
     const injectMarkdown = (type: string) => {
@@ -123,6 +127,10 @@ export default function HomeEditor() {
                 break;
             case "table":
                 replacement = `\n| Header 1 | Header 2 |\n| -------- | -------- |\n| Cell 1   | Cell 2   |\n`;
+                break;
+            case "mermaid":
+                replacement = `\n\`\`\`mermaid\nflowchart TD\n    A[Start] --> B[End]\n\`\`\`\n`;
+                cursorOffset = selection ? 0 : 37;
                 break;
             default:
                 return;
@@ -335,6 +343,15 @@ export default function HomeEditor() {
                         >
                             <Table className="h-4 w-4" />
                         </button>
+                        <div className="h-4 w-px bg-[var(--color-border-subtle)] mx-1"></div>
+                        <button
+                            type="button"
+                            onClick={() => injectMarkdown("mermaid")}
+                            title="Mermaid Diagram"
+                            className="flex h-7 w-7 items-center justify-center rounded text-[var(--color-text-muted)] transition-smooth hover:bg-[var(--color-border-subtle)] hover:text-[var(--color-text-primary)]"
+                        >
+                            <Workflow className="h-4 w-4" />
+                        </button>
                     </div>
 
                     {/* Text Area */}
@@ -382,8 +399,8 @@ export default function HomeEditor() {
                 >
                     <div className="mx-auto w-full max-w-3xl pb-32">
                         <div
+                            ref={previewRef}
                             className="prose-custom max-w-none break-words"
-                            dangerouslySetInnerHTML={{ __html: parsedHtml }}
                         />
                     </div>
                 </div>
