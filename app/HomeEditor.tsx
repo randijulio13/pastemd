@@ -171,11 +171,15 @@ export default function HomeEditor() {
             <header className="flex h-14 w-full items-center justify-between border-b border-[var(--color-border-subtle)] bg-[var(--color-bg-elevated)] px-4 sm:px-6">
                 <div className="flex items-center gap-3">
                     <div className="cursor-default rounded-md border border-[var(--color-border-subtle)] bg-[var(--color-bg-surface)] px-3 py-1 font-mono text-sm tracking-wide text-[var(--color-text-muted)] transition-smooth hover:text-[var(--color-text-primary)]">
-                        pastemd
+                        md
                         <span className="text-[var(--color-accent-warm)]">
                             .
                         </span>
-                        com
+                        randijulio
+                        <span className="text-[var(--color-accent-warm)]">
+                            .
+                        </span>
+                        cloud
                     </div>
                     <span className="hidden items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-500 sm:flex">
                         <Sparkles className="h-3 w-3 animate-pulse" />
@@ -436,7 +440,7 @@ export default function HomeEditor() {
                                     }
                                     className="w-full appearance-none rounded-xl border border-[var(--color-border-medium)] bg-[var(--color-bg-surface)] py-2.5 pl-10 pr-10 text-xs text-[var(--color-text-primary)] outline-none transition-smooth focus:border-[var(--color-accent-warm)] focus:ring-2 focus:ring-[var(--color-accent-warm)]/15 cursor-pointer"
                                 >
-                                    <option value="never">Never expire</option>
+                                    {/*<option value="never">Never expire</option>*/}
                                     <option value="1h">Expire in 1 Hour</option>
                                     <option value="1d">Expire in 1 Day</option>
                                     <option value="1w">Expire in 1 Week</option>
