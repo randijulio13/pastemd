@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
     Copy,
     Download,
@@ -39,22 +39,24 @@ export default function PasteViewer({
     const [viewMode, setViewMode] = useState<"preview" | "raw">("preview");
     const [copiedText, setCopiedText] = useState(false);
     const [copiedLink, setCopiedLink] = useState(false);
-    const previewRef = useRef<HTMLDivElement>(null);
 
-    // Render preview & trigger highlight.js + mermaid
-    useEffect(() => {
-        if (viewMode !== "preview" || !previewRef.current) return;
-
+    // Parse markdown into HTML (pure computation, no cascading renders)
+    const previewHtml = useMemo(() => {
+        if (!content.trim()) return "";
         try {
-            previewRef.current.innerHTML = marked.parse(content) as string;
-        } catch (e) {
-            console.error("Markdown parse error:", e);
-            previewRef.current.innerHTML = `<p>${content}</p>`;
+            return marked.parse(content) as string;
+        } catch {
+            return `<p>${content}</p>`;
         }
+    }, [content]);
+
+    // Trigger highlight.js & mermaid on the rendered DOM
+    useEffect(() => {
+        if (viewMode !== "preview" || !previewHtml) return;
 
         hljs.highlightAll();
         renderMermaid();
-    }, [viewMode, content]);
+    }, [viewMode, previewHtml]);
 
     // Format dates
     const createdDateStr = useMemo(() => {
@@ -255,8 +257,8 @@ export default function PasteViewer({
                     {/* Toggle Rendering Mode */}
                     {viewMode === "preview" ? (
                         <div
-                            ref={previewRef}
                             className="prose-custom max-w-none break-words"
+                            dangerouslySetInnerHTML={{ __html: previewHtml }}
                         />
                     ) : (
                         <div className="relative rounded-2xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-elevated)] p-6 shadow-2xl">
